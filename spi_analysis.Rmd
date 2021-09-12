@@ -1,0 +1,178 @@
+---
+title: "icfwm"
+author: "Saumik Mallik"
+date: "11/21/2020"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+library(hrbrthemes)
+library(gridExtra)
+library(ggpubr)
+
+setwd("D:/ICWFM/data/csv_data")
+setwd("D:/ICWFM/chirps_data/csv_files")
+```
+
+```{r}
+dates<-seq(as.Date("1981/1/1"), by = "month", length.out = 478)
+write.csv(dates, "dates.csv")
+```
+
+```{r}
+spi_g03 <- read_excel("data_ggplot.xlsx", sheet = "tsplot_g03_spi")
+spi_g06 <- read_excel("data_ggplot.xlsx", sheet = "tsplot_g06_spi")
+spi_g12 <- read_excel("data_ggplot.xlsx", sheet = "tsplot_g12_spi")
+
+spi_g03$Date<- as.Date(as.POSIXct(spi_g03$Date, 'UTC'))
+spi_g06$Date<- as.Date(as.POSIXct(spi_g06$Date, 'UTC'))
+spi_g12$Date<- as.Date(as.POSIXct(spi_g12$Date, 'UTC'))
+```
+
+```{r}
+# CHIRPS data
+chirps_03 <- read_excel("D:/ICWFM/chirps_data/csv_files/all_chirps_data.xlsx", sheet = "3m_spi_date-dis")
+chirps_12 <- read_excel("D:/ICWFM/chirps_data/csv_files/all_chirps_data.xlsx", sheet = "12m_spi_date-dis")
+
+chirps_03$Date<- as.Date(as.POSIXct(chirps_03$Date, 'UTC'))
+chirps_12$Date<- as.Date(as.POSIXct(chirps_12$Date, 'UTC'))
+
+```
+
+
+```{r, message=FALSE, echo=FALSE, warning= FALSE}
+#names(spi_g12)
+
+# spi_g03%>% ggplot()+
+#   geom_line(aes(Date, Sirajganj), color="darkgreen")+
+#   geom_line(data = spi_g06, aes(Date, Sirajganj), color="blue")+
+#   geom_line(data = spi_g12, aes(Date, Sirajganj), color="red", size=1.1)+
+#   xlab("") +
+#   theme_ipsum(axis_text_size = 8) +
+#   scale_x_date(date_labels = "%b-%Y", breaks = "1 year")+
+#   theme(axis.text.x=element_text(angle=90, hjust=1))+
+#   geom_hline(yintercept = 0)
+
+colors_ts<- c("3 months" = "blue", "12 months" = "red")
+
+rangpur_spi<- ggplot()+
+  geom_area(data= chirps_03, aes(Date, Rangpur, fill= "3 months"), alpha= 0.5)+
+  #geom_area(data= spi_g06, aes(Date, Sirajganj), alpha= 0.5, fill="cyan")+
+  geom_area(data= chirps_12, aes(Date, Rangpur, fill= "12 months"), alpha= 0.5)+
+  geom_hline(yintercept = c(-2,-1.5,-1,1,1.5,2), linetype= "dashed")+
+  geom_hline(yintercept = c(0))+
+  scale_x_date(date_labels = "%Y", breaks = "3 year")+
+  labs(x= "Year", fill= "Timescale", y= "SPI")+
+  scale_fill_manual(values = colors_ts)+
+  scale_colour_Publication()+ theme_Publication()+
+  theme(axis.text.x=element_text(angle=30, hjust=1), legend.position = "bottom")+
+  scale_y_continuous(breaks = c(-3, -2, -1.5, -1, 0, 1, 1.5, 2, 3))+
+  theme(plot.margin=grid::unit(c(2,1,3,1), "mm"))
+#, labels = c("0.00","0.25","0.50","0.75","0.92","1.00"))
+
+
+sylhet_spi<- ggplot()+
+  geom_area(data= chirps_03, aes(Date, Sylhet, fill= "3 months"), alpha= 0.5)+
+  #geom_area(data= spi_g06, aes(Date, Sirajganj), alpha= 0.5, fill="cyan")+
+  geom_area(data= chirps_12, aes(Date, Sylhet, fill= "12 months"), alpha= 0.5)+
+  geom_hline(yintercept = c(-2,-1.5,-1,1,1.5,2), linetype= "dashed")+
+  geom_hline(yintercept = c(0))+
+  scale_x_date(date_labels = "%Y", breaks = "3 year")+
+  labs(x= "Year", fill= "Timescale", y= "SPI")+
+  scale_fill_manual(values = colors_ts)+
+  scale_colour_Publication()+ theme_Publication()+
+  theme(axis.text.x=element_text(angle=30, hjust=1), legend.position = "bottom")+
+  scale_y_continuous(breaks = c(-3, -2, -1.5, -1, 0, 1, 1.5, 2, 3))+
+  theme(plot.margin=grid::unit(c(2,1,2,1), "mm"))
+#, title= "Evolution of SPI3 and SPI12 in Sylhet from 1981 to 2020"
+
+figure2<- ggarrange(sylhet_spi, rangpur_spi, ncol=1, nrow=2, common.legend = TRUE, legend="bottom" )
+figure2
+
+khulna_spi<- ggplot()+
+  geom_area(data= chirps_03, aes(Date, Khulna, fill= "3 months"), alpha= 0.5)+
+  #geom_area(data= spi_g06, aes(Date, Sirajganj), alpha= 0.5, fill="cyan")+
+  geom_area(data= chirps_12, aes(Date, Khulna, fill= "12 months"), alpha= 0.5)+
+  geom_hline(yintercept = c(-2,-1.5,-1,1,1.5,2), linetype= "dashed")+
+  geom_hline(yintercept = c(0))+
+  scale_x_date(date_labels = "%Y", breaks = "3 year")+
+  labs(x= "Year", fill= "Timescale", y= "SPI")+
+  scale_fill_manual(values = colors_ts)+
+  scale_colour_Publication()+ theme_Publication()+
+  theme(axis.text.x=element_text(angle=30, hjust=1), legend.position = "bottom")+
+  scale_y_continuous(breaks = c(-3, -2, -1.5, -1, 0, 1, 1.5, 2, 3))+
+  theme(plot.margin=grid::unit(c(1,1,2,1), "mm"))
+
+figure3<- ggarrange(sylhet_spi, rangpur_spi, khulna_spi, ncol=1, nrow=3, common.legend = TRUE, legend="bottom" )
+figure3
+#grid.arrange(sylhet_spi, thakurgaon_spi, nrow = 2) 
+
+```
+
+```{r}
+library(Kendall)
+library(trend)
+
+TS<- ts(chirps_03$Dhaka,
+        frequency=12,
+        start=c(1981,1))
+
+plot(TS)
+plot(decompose(TS))
+plot(stl(TS, s.window="periodic", na.action = na.omit))
+
+MK<- MannKendall(TS)
+summary(MK)
+
+SMK = SeasonalMannKendall(TS)
+summary(SMK)
+
+pettitt.test(na.exclude(TS))
+
+for (i in spi_g03[-1]) {
+  MannKendall( spi_g03[i])  
+}
+```
+
+
+```{r}
+wet03 <- read_excel("D:/ICWFM/data/csv_data/fequency.xlsx", sheet = "g03_wet")
+dry03 <- read_excel("D:/ICWFM/data/csv_data/fequency.xlsx", sheet = "g03_dry")
+wet12 <- read_excel("D:/ICWFM/data/csv_data/fequency.xlsx", sheet = "g12_wet")
+dry12 <- read_excel("D:/ICWFM/data/csv_data/fequency.xlsx", sheet = "g12_dry")
+
+data<- dry03
+
+data[order(-data[4]),]
+
+aggregate(data[, c(4,6,8,9)], list(data$Division), mean)
+```
+```{r}
+#CHIRPS data analysis
+ch_freq03 <- read_excel("D:/ICWFM/chirps_data/csv_files/all_chirps_data.xlsx", sheet = "3m_frequency")
+ch_freq12 <- read_excel("D:/ICWFM/chirps_data/csv_files/all_chirps_data.xlsx", sheet = "12m_frequency")
+
+data<- ch_freq03
+
+data[order(-data[15]),]
+
+aggregate(data[, c(4,6,8,11,13,15)], list(data$Division), mean)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

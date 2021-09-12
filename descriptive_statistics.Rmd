@@ -1,0 +1,235 @@
+---
+title: "Descriptive Statistics with R"
+author: "Saumik Mallik"
+date: "7/30/2021"
+output: html_document
+---
+
+```{r}
+# Import Libraries
+
+library(readxl)
+library(tidyverse)
+library(ggplot2)
+library(ggthemr)
+library(scales)
+
+# Set working sirectory
+setwd("D:/MSc/Statistical Analysis_mokhles sir/Assignment-1")
+
+# Load the data
+
+cities <- read_csv("D:/MSc/Statistical Analysis_mokhles sir/Assignment-1/GlobalLandTemperaturesByMajorCity.csv")
+cities$dt<-  as.Date(cities$dt, "%Y-%m-%d")
+```
+
+```{r}
+ggthemr("fresh")
+#ggthemr("grape")
+
+#Histogram
+plot_hist<- cities%>%
+  filter(City == "Dhaka")%>%
+  ggplot(aes(AverageTemperature))+
+  geom_histogram( color="#233B43", fill="#233B43", alpha=0.6)+
+  labs(title = "Histogram of Monthly Average Surface Temperature in Dhaka city", x = "Average Monthly Surface Temperature (°C)", y = "Frequency")+
+  theme(axis.text.x=element_text())+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1), hjust = 0.5, color = "black"),
+         axis.title = element_text(face = "plain",size = rel(0.95)),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black"),
+               axis.title.x = element_text(vjust = -0.2, color = "black"),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))+
+  scale_x_continuous(breaks = seq(12.5, 32, by = 2.5))
+
+#Box Plot
+plot_box<- cities%>%
+  filter(City == c("Dhaka","London", "Sydney", "New York", "New Delhi"))%>%
+  ggplot(aes(x=as.factor(City), y=AverageTemperature, fill=City))+
+  geom_boxplot()+
+  theme(legend.position="none")+
+  labs(title = "Box and Whisker plot", subtitle = "Monthly Average Surface Temperatures of some major Cities",  x = "", y = "Avg. Surface Temperature (°C)")+
+  scale_y_continuous(breaks=seq(-25,40,5))+
+  theme(axis.text.x=element_text())+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1), hjust = 0.5, color = "black"),
+        plot.subtitle = element_text(hjust = 0.5),
+         axis.title = element_text(face = "plain",size = rel(0.95)),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black", size = rel(0.90)),
+               axis.title.x = element_text(vjust = -0.2, color = "black"),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))
+
+#Violin Plot
+plot_violin<- cities%>%
+  filter(City == c("Dhaka","London", "Sydney", "New York", "New Delhi"))%>%
+  ggplot(aes(x=as.factor(City), y=AverageTemperature, fill=City))+
+  geom_violin(trim= FALSE)+
+  theme(legend.position="none")+
+  labs(title = "Violin plot", subtitle = "Monthly Average Surface Temperatures of some major Cities", x = "", y = "Avg. Surface Temperature (°C)")+
+  scale_y_continuous(breaks=seq(-25,40,5))+
+  theme(axis.text.x=element_text())+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1), hjust = 0.5, color = "black"),
+         axis.title = element_text(face = "plain",size = rel(0.95)),
+          plot.subtitle = element_text(hjust = 0.5),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black"),
+               axis.title.x = element_text(vjust = -0.2, color = "black"),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))
+
+#Cumulitive Frequecy Plot
+plot_cf<- cities%>%
+  filter(City == c("Dhaka","London", "Sydney", "New York", "New Delhi"))%>%
+  ggplot(aes(AverageTemperature, color = City)) + stat_ecdf(size = 1.1, alpha=0.85)+
+  labs(title = "Cumulitive Frequency plot", subtitle = "Monthly Average Surface Temperatures of some major Cities", x = "Avg. Surface Temperature (°C)", y = "Cumulitive Frequency")+
+  theme(axis.text.x=element_text())+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1), hjust = 0.5, color = "black"),
+        plot.subtitle = element_text(hjust = 0.5),
+         axis.title = element_text(face = "plain",size = rel(0.95)),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black", size = rel(0.85)),
+               axis.title.x = element_text(vjust = -0.2, color = "black", size = rel(0.85)),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))+
+  scale_colour_manual(labels = c("Dhaka","London", "Sydney", "New York", "New Delhi"), values = c("Dhaka"="#65ADC2", "London"="#233B43", "Sydney"="#362C21", "New York"="#C29365", "New Delhi" = "#E84646"), name= "City    ", guide= "legend")
+  
+```
+
+Time-series Plot
+```{r}
+dhaka_temp<- cities%>% filter(City == "Dhaka") %>% select(AverageTemperature)
+dates<- seq(as.Date("1796/1/1"), as.Date("2013/9/13"), "months")
+
+ts_df <- data.frame(dhaka_temp, dates)
+
+plot_ts<- ts_df%>%
+  ggplot(aes(x= dates, y= AverageTemperature))+
+  geom_line(na.rm =TRUE, color= "#233B43", alpha= 0.85)+
+  #scale_x_date(date_labels = "%Y")+
+  ylim(c(10,35))+
+  scale_x_date(date_breaks = "10 year", 
+                 labels=date_format("%Y"),
+                 limits = as.Date(c('1815-01-01','2013-01-01')))+
+  labs(title = "Time Series plot of monthly Average Surface Temperature in Dhaka (1815-2015)", x = "Year", y = "Avg. Surface Temperature (°C)")+
+  theme(axis.text.x=element_text(angle=30, hjust=1))+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1.3), hjust = 0.5, color = "black"),
+         axis.title = element_text(face = "plain",size = rel(1)),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black",size = rel(0.95)),
+               axis.title.x = element_text(vjust = -0.2, color = "black",size = rel(0.95)),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))+
+  stat_smooth(
+  color = "#E84646", fill = "red",
+  method = "glm", se= FALSE
+  )
+plot_ts
+```
+```{r}
+dhaka_temp<- cities%>% filter(City == "Dhaka") %>% select(AverageTemperature)
+delhi_temp<- cities%>% filter(City == "New Delhi") %>% select(AverageTemperature)
+
+
+scatter_data <- data.frame(dhaka_temp, delhi_temp)
+
+scatter<- scatter_data%>%
+  ggplot(aes(AverageTemperature, AverageTemperature.1))+
+  geom_point( alpha=0.6, color= "#233B43")+
+  labs(title = "Scatter plot - Monthly Average Surface Temperatures of Dhaka vs New Delhi", x = "Dhaka", y = "New Delhi")+
+  ylim(c(12,35))+ xlim(c(17,33))+
+  geom_smooth(method='loess', color="#E84646", fill = "red")+
+  #geom_smooth(method="auto", se=TRUE, fullrange=FALSE, level=0.95, color= "red")+
+  theme(axis.text.x=element_text())+
+  theme(plot.title = element_text(face = "bold",
+                                         size = rel(1.25), hjust = 0.5, color = "black"),
+         axis.title = element_text(face = "plain",size = rel(1)),
+               axis.title.y = element_text(angle=90,vjust =2, color = "black", size = rel(1.1)),
+               axis.title.x = element_text(vjust = -0.2, color = "black", size = rel(1.1)),
+               axis.text = element_text(color = "black"), 
+               axis.line = element_line(colour="black"),
+               axis.ticks = element_line(color = "black"))+
+  scale_x_continuous(breaks = seq(12.5, 32, by = 2.5))
+```
+
+```{r}
+dhakatemp<- cities%>% filter(City == "Dhaka") %>% .$AverageTemperature
+delhitemp<- cities%>% filter(City == "New Delhi") %>% .$AverageTemperature
+nytemp<- cities%>% filter(City == "New York") %>% .$AverageTemperature
+londontemp<- cities%>% filter(City == "London") %>% .$AverageTemperature
+sydneytemp<- cities%>% filter(City == "Sydney") %>% .$AverageTemperature
+
+Summary_Statistics <- c("Mean", "Median", "Variance", "Standard Deviation", "Q1", "Q2", "Q3", "IQR", "Min.", "Max.", "Range")
+Dhaka <- c(mean(dhakatemp, na.rm = TRUE), 
+           median(dhakatemp, na.rm = TRUE), 
+           var(dhakatemp, na.rm = TRUE),
+           sd(dhakatemp, na.rm = TRUE),
+           quantile(dhakatemp, na.rm = TRUE)[[2]],
+           quantile(dhakatemp, na.rm = TRUE)[[3]],
+           quantile(dhakatemp, na.rm = TRUE)[[4]],
+           IQR(dhakatemp, na.rm = TRUE),
+           min(dhakatemp, na.rm = TRUE),
+           max(dhakatemp, na.rm = TRUE),
+           max(dhakatemp, na.rm = TRUE) - min(dhakatemp, na.rm = TRUE))
+
+New_Delhi <- c(mean(delhitemp, na.rm = TRUE), 
+           median(delhitemp, na.rm = TRUE), 
+           var(delhitemp, na.rm = TRUE),
+           sd(delhitemp, na.rm = TRUE),
+           quantile(delhitemp, na.rm = TRUE)[[2]],
+           quantile(delhitemp, na.rm = TRUE)[[3]],
+           quantile(delhitemp, na.rm = TRUE)[[4]],
+           IQR(delhitemp, na.rm = TRUE),
+           min(delhitemp, na.rm = TRUE),
+           max(delhitemp, na.rm = TRUE),
+           max(delhitemp, na.rm = TRUE) - min(delhitemp, na.rm = TRUE))
+
+New_York <- c(mean(nytemp, na.rm = TRUE), 
+           median(nytemp, na.rm = TRUE), 
+           var(nytemp, na.rm = TRUE),
+           sd(nytemp, na.rm = TRUE),
+           quantile(nytemp, na.rm = TRUE)[[2]],
+           quantile(nytemp, na.rm = TRUE)[[3]],
+           quantile(nytemp, na.rm = TRUE)[[4]],
+           IQR(nytemp, na.rm = TRUE),
+           min(nytemp, na.rm = TRUE),
+           max(nytemp, na.rm = TRUE),
+           max(nytemp, na.rm = TRUE) - min(nytemp, na.rm = TRUE))
+
+London <- c(mean(londontemp, na.rm = TRUE), 
+           median(londontemp, na.rm = TRUE), 
+           var(londontemp, na.rm = TRUE),
+           sd(londontemp, na.rm = TRUE),
+           quantile(londontemp, na.rm = TRUE)[[2]],
+           quantile(londontemp, na.rm = TRUE)[[3]],
+           quantile(londontemp, na.rm = TRUE)[[4]],
+           IQR(londontemp, na.rm = TRUE),
+           min(londontemp, na.rm = TRUE),
+           max(londontemp, na.rm = TRUE),
+           max(londontemp, na.rm = TRUE) - min(londontemp, na.rm = TRUE))
+
+Sydney <- c(mean(sydneytemp, na.rm = TRUE), 
+           median(sydneytemp, na.rm = TRUE), 
+           var(sydneytemp, na.rm = TRUE),
+           sd(sydneytemp, na.rm = TRUE),
+           quantile(sydneytemp, na.rm = TRUE)[[2]],
+           quantile(sydneytemp, na.rm = TRUE)[[3]],
+           quantile(sydneytemp, na.rm = TRUE)[[4]],
+           IQR(sydneytemp, na.rm = TRUE),
+           min(sydneytemp, na.rm = TRUE),
+           max(sydneytemp, na.rm = TRUE),
+           max(sydneytemp, na.rm = TRUE) - min(sydneytemp, na.rm = TRUE))
+
+
+ts_df <- data.frame(Summary_Statistics, Dhaka, New_Delhi, New_York, London, Sydney)
+
+library("writexl")
+write_xlsx(ts_df, "sum_stats.xlsx")
+```
+
